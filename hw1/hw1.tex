@@ -141,7 +141,6 @@ should be.
 
 
 Include your plot in your solution PDF.
-
 \textbf{In no more than 5 sentences}, describe what happens in each of the three cases. How well do the models interpolate? If you were to choose one of these models to use for predicting the temperature at some year in this range, which would you use? 
 
 \item Say we instead wanted to empirically evaluate which value of $\tau$ to choose. One option is to evaluate the mean squared error (MSE) for $f_{\tau}$ on the training set and simply choose the value of $\tau$ that gives the lowest loss. Why is this a bad idea?
@@ -152,7 +151,7 @@ Hint: consider what value of $\tau$ would be optimal, for $\tau$ ranging in $(0,
 
 Let $\{(x'_m, y'_m)\}_{m = 1} ^M$ denote the test set. Write down the form of the MSE of $f_\tau$ over the test set as a function of the training set and test set. Your answer may include $\{(x'_m, y'_m)\}_{m = 1} ^M$, $\{(x_n, y_n)\}_{n = 1} ^N$, and $K_\tau$, but not $f_\tau$.
 
-\item We now compute the MSE on the provided training set. Write Python code to compute the MSE with respect to the same lengthscales as in Part 1. Which model yields the lowest test set MSE? Is this consistent with what you observed in Part 1?
+\item We now compute the MSE on the provided test set. Write Python code to compute the MSE with respect to the same lengthscales as in Part 1. Which model yields the lowest test set MSE? Is this consistent with what you observed in Part 1?
 
 \item 
 Say you would like to send your friend your kernelized regressor, so that they can reproduce the same exact predictions as you. You of course will tell them the value of $\tau$ you selected, but what other information would they need, assuming they don't currently have any of your data or code? If our training set has size $N$, how does this amount of information grow as a function of $N$—that is, what is the space complexity of storing our model?
@@ -163,7 +162,27 @@ What is the time complexity of your implementation, when computing your model on
 \end{problem}
 
 \newpage
-
+\begin{enumerate}
+    \item As we can see from the graph below, in the case that $\tau = 1$, the temperature between data points hews almost exactly to the temperature of the nearest data point. This is unrealistic since temperature doesn't change in puncuated equilibrium, but continuously. When $\tau = 50$, the change is more continuous and the most realistic, so I would choose this value if I were to deploy this model. Finally, when $\tau = 2500$, the model incorporates the temperatures of data points far outside the relevant range, and its predictions rarely intersect with its training data; on the contrary, its predicted temperature is usually close to the mean.  
+    \begin{center}
+    \includegraphics[scale=0.7]{hw1/plotto.png}
+    \end{center}
+    \newline
+    \item This is a bad idea because it would lead to overfitting. If we look at the graph above again, we can see that $\tau = 1$ would give the lowest MSE because it hews exactly to the training data. Nonetheless, it's clearly not a realistic model.
+    \item Plugging into the formula, we get 
+    $$
+    % \frac{1}{M}\sum_{i = 1}^M\left(y_i - \frac{\sum_{n}K_\tau(x_n, x_i)y_n}{\sum_n K_\tau(x_n, x_i)}\right)^2$$
+    \text{MSE} = \frac{1}{M}\sum_{i = 1}^M\left(y'_i - \frac{\sum_{n}K_\tau(x_n, x'_i)y_n}{\sum_n K_\tau(x_n, x'_i)}\right)^2$$
+    \item I got the following results:
+    \begin{enumerate}
+        \item $\tau = 1$: MSE = $1.9472621565209178$
+        \item $\tau = 50$: MSE = $1.858289916961345$
+        \item $\tau = 2500$: MSE = $8.333886806980791$
+    \end{enumerate}
+    This comports with what I predicted, since I also selected the model where $\tau = 50$; it supports the proposition that the first $\tau$ is overfit with respect to the test data and the third $\tau$ is underfit with respect to the data 
+    \item I would also need to send them the training data and either my implementation or a mathematical representation of my implementation. The current implementation of the model has a space complexity of $O(1)$: currently, we don't store the model at all, and instead train and predict in one go. All the operations in the calculations to do this take constant space. However, they do not take constant time. As it is currently implemented, the model takes $O(n)$ time whenever we want to either predict or add a datapoint since we take two sums, and $K_\tau$ is a constant-time calculation 
+\end{enumerate}
+\newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem 2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -211,6 +230,18 @@ What is the time complexity of your implementation, when computing your model on
 
 \end{problem}
 
+\newpage
+\begin{enumerate}
+    \item See attached code
+        \newline
+    \begin{center}
+    \includegraphics[scale=0.7]{hw1/knn.png}
+    \end{center}
+\newline
+    \item The behavior of the functions is similar to that of number one, in that when we increase a hyperparameter, the graph smoothes out: $k = 1$ maps to $\tau = 1$, $k = 3$ maps to $\tau = 50$, and $k = N - 1$ maps to $\tau = 2500$. Additionally, similar to question one, the middle hyperparameter setting seems to most closely interpolate the data. I would say these models interpolate similarly for each mapping above, except that our kernel regression is smooth and kNN is discrete (which makes sense, since the importance of a point in kNN is binary, but continuous in kernel regression). 
+    \item I most prefer the model when $k = 3$ because it roughly traces where I would draw a regression. In addition, $k = N - 1$ doesn't account for the closeness of values at all (almost), and $k = 1$ doesn't really interpolate so much as return the closest value, which doesn't account for nearby data so as to interpolate \textit{between} points. This model's mean squared error is $3.890766222222222$, which is higher than when $k = 1$, where the MSE is $1.7406000000000004$. However, this is testing on the training data, so it will not represent real-world performane of the model. 
+    \item The space complexity of my model is $O(N)$ because we store the coordinates in a list of length $N$. The time complexity is $O(N\log N)$ because we sort the list, and sorting the list (with TimSort in Python) is an $O(N\log N)$ operation. The other operations take $O(N)$ to zip and $O(N)$ to unzip. 
+\end{enumerate}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem 3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -314,6 +345,7 @@ likelihood for your train and test sets.
 underfits, or fits well. Write 1-2 sentences explaining your 
 claim using the train and test likelihood and MSE.
 
+
 \end{itemize}
 \item For the third time, you wish to send your friend your model. Lets say you fitted some weight vector of dimension $D$. What information would you need to share with your friend for them to perform the same predictions as you? Do you need to share your entire training set with them this time? Again, what is the space complexity of storing your model?
 
@@ -335,6 +367,32 @@ of the target $\mathbf{y}$ to be different; in these cases the
 MSE can no longer be directly compared.
 
 \end{framed}
+\newpage
+\begin{enumerate}
+    \item See code
+    %  Do we need to add "rolling in the bias"
+    \newline
+    \includegraphics[scale=0.5]{hw1/1.3.1.png}
+    \newline
+    \item I got the following results:
+    \begin{enumerate}
+        \item \textbf{Part (a): }Train MSE: 4.83; Test MSE: 7.96
+        
+    Train Negative Log-Likelihood: 125.768; Test Negative Log-Likelihood: 63.256
+        \item \textbf{Part (b):} Train MSE: 5.53; Test MSE: 8.71
+
+ Train Negative Log-Likelihood: 129.620; Test Negative Log-Likelihood: 64.035
+
+        \item \textbf{Part (c)}: Train MSE: 2.88; Test MSE: 5.97
+
+ Train Negative Log-Likelihood: 111.018; Test Negative Log-Likelihood: 62.098
+        \item \textbf{Part (d):} Train MSE: 0.64; Test MSE: 58.91
+
+ Train Negative Log-Likelihood: 68.303; Test Negative Log-Likelihood: 1162.271
+    \end{enumerate}
+    It seems like this model may be slightly underfit: the NLL scores are fairly low for both categories. Indeed, I am confident that it is likely not overfit, as it is a linear model and has fairly similar scores in the train and test categories. 
+    \item This time, we do not need to send over as much data. The training data has been "baked into" our matrix $\mathbf{w}$, so our space complexity is $O(1)$. (And I, I suppose, for them to make the same predictions as I do, they would have to also have whatever $x$'s I predicted on, but this isn't really part of the model.)
+\end{enumerate}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem 4
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -360,6 +418,7 @@ This question is a conceptual question, and you are not required to implement th
 \item \textbf{Policy decision:} Explain one policy decision the US president could make based on your model. 
 \item \textbf{Trust:} What could be barriers for the US president to trust your model?  List two possible barriers. 
 \item \textbf{Risk:} What happens if your model is wrong/inaccurate?  List one real-world consequence. 
+\newpage
 
 
 \end{enumerate}
@@ -367,15 +426,37 @@ This question is a conceptual question, and you are not required to implement th
 \end{problem}
 
 \newpage
+To model this, I would create a linear or polynomial regression modeling the total energy usage of states (as in, I would test both models, but it seems that polynomial would better model the factors in theory, as I will explain). This model would take in its set of features and predict the total monthly energy usage of the each state in BTUs. I selected BTUs because that is the unit I most commonly encountered when researching the annual energy usage of the United States as a whole, so it is likely that this is best unit representing this. The features put into this model should combine factors accounting for a majority of variance, and actionable factors. My assumption here is that the importance of factors follows the Pareto Principle, so I will call these "Pareto Factors". We want actionable factors because this model is presumably being used to evaluate the effectiveness of factors policy can affect. 
+\newline
+To increase the number of datapoints, I will model this on a month-to-month interval for data over the past 30 years. I select the past 30 years because this is a time period when the larger economy of the United States is generally constant--i.e., we are largely service-based and in a globalist society, using similar technologies. In this interval, we would have approximately 18,000 datapoints (12 months * 30 years * 50 states). You may object that the winter will skew results so I will include mean monthly temperature as a variable. For some states, we may have to split them up into regions or metropolitan areas (i.e., California and, to a lesser extent, Texas have particularly variable climates). I will use the mean center of population as a location for this metric. In addition, I will measure GDP on the assumption that prosperity is correlated with energy consumption. I predict that these metrics will account for a large amount of variance but they aren’t necessarily actionable (except that making people poorer would save energy, but that isn’t likely to be a popular policy platform). As for actionable features, I propose total energy subsidies (i.e., federal + state) as a metric on the theory that we should implement more energy subsidies if states with higher energy subsidies use less energy. I also propose electric car adoption on the theory that if states with more electric cars are use less energy, we should keep the large subsidies for them, and if they don’t, we should redirect our tax dollars to more effective interventions. Finally, I propose public transportation usage (measured as, say, the average number of times people say they use public transportation over a given time period), on the theory that we should direct tax dollars toward it proportionately to how strongly it's correlated with energy usage. These interventions have scale advantages, so their effectiveness is almost certainly not linear. Therefore, I would use a polynomial model.
+\newline
+How can we measure these correlations? Two ways: first, by looking at the coefficients of our fitted regression, and second, by implementing LASSO regression so that the least correlated features drop out. We can then select for the features that are most effective in decreasing energy consumption. These factors will have the largest coefficients.
+\newline
+I would use MSE as a loss function along with this LASSO regression term. 
+\newline
+As a result of this model, the US government could remove ineffective subsidies for electric cars and redirect them to more effective interventions (I use this example because electric car subsidies almost certainly aren’t the most effective intervention per dollar for mitigating climate change; see citation 1). These would likely be implemented either in the administrative state/executive orders or in large infrastructure/Byrd rule laws. First, however, the US president would have to trust my findings. This could prove difficult if the data doesn’t comport with his intuitions (e.g., nuclear power being a solution to climate change) or is an as-of-yet unnoticed intervention. Finally, if my model is wrong, this would lead to unnecessary (although relatively incremental) climate consequences--consequences that hurt the whole world. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Name and Calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection*{Name}
+\subsection*{Name: John Boesen}
 
 \subsection*{Collaborators and Resources}
-Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?
+Whom did you work with, and did you use any resources beyond cs181-textbook and your notes? I worked with Minh Le, aside from the following, I used no other resources. 
+For Number 4, I used the following resource:
+\begin{enumerate}
+    \item Zachary Thorne, Larry Hughes,
+"Evaluating the effectiveness of electric vehicle subsidies in Canada",
+\textit{Procedia Computer Science},
+Volume 155,
+2019,
+Pages 519-526,
+ISSN 1877-0509,
+https://doi.org/10.1016/j.procs.2019.08.072.
+(https://www.sciencedirect.com/science/article/pii/S187705091930986X)
+\end{enumerate}
+
 
 \subsection*{Calibration}
 Approximately how long did this homework take you to complete (in hours)? 
-
+10 hours
 \end{document}
