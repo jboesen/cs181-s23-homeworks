@@ -23,6 +23,13 @@
 \usepackage{bbm}
 \newcommand{\B}{\text{B}}
 \newcommand{\Beta}{\text{Beta}}
+\newenvironment{ans}{
+  \begin{enumerate}
+  \color{blue}
+}{
+  \end{enumerate}
+  \color{black}
+}
 
 \usepackage[mmddyyyy,hhmmss]{datetime}
 
@@ -113,12 +120,35 @@ Use the given code to plot the true process versus your learned models. Include 
 
 \item Consider the test point $t = 0.1$. Using your models trained on basis $\boldsymbol\phi_3$, report the predicted probability of observation of the \textit{first} model (the model trained on the first 30 data points). How can we interpret this probability as a measure of uncertainty? Then, compute the variance of the classification probability over your 10 models at the same point $t = 0.1$. How does this measurement capture another source of uncertainty, and how does this differ from the uncertainty represented by the classification probability?
 
-Repeat this process (reporting the first model's classification probability and the variance over the 10 models) for the point $t = 3.2$. At which point in time would you be more confident in detecting the planet? There's no right answer---you should consider the two different types of uncertainty and their implications when translating from model output to decision making.
-
+Repeat this process (reporting the first model's classification probability and the variance over the 10 models) for the point $t = 3.2$. At which point in time would you be more confident in detecting the planet? There's no right answer---you should consider the two different types of uncertainty and their implications when translating from model output to decision making. 
 \end{enumerate}
 \end{problem}
  \let\cleardoublepage\clearpage
+\newpage
 
+\begin{ans}
+    \includegraphics[scale=0.3]{hw2/basis1.png}
+    \includegraphics[scale=0.3]{hw2/basis2.png}
+    \includegraphics[scale=0.3]{hw2/basis3.png}
+    \newline 
+    \newline
+    2. As we discussed in class, the Bias-Variance Tradeoff is that  increasing model complexity decreases error but increases the risk of overfitting and vice versa. We can see this here: for the models with bases of lower degrees, there is very high error (since the linear model cannot account for nonlinear trends), but a very low risk of overfitting (the model can hardly fit to the actual data, so, of course, it is not going to fit to the noise); conversely, for the models with high-dimensional bases, the output is more jagged than the ground-truth, so it is overfit to the noisy input data, but the variance on that input data is very low. That is, the fit to the data becomes better and better as we increase the dimensionality of our bases, but, as the dimension gets too high, the model overfits, and fits the ground-truth model worse and worse. Out of these three options, basis 3 seems to best approximate the ground truth. 
+    \newline
+    % ?? increasing the bias and decreasing the variance? 
+    % ww defines variance as sample variance, ie mse
+    % ww defines bias as how predisposed the model is to pred a value away from the ground truth
+    % \item Increasing the size of the data would decrease the bias and decrease the variance
+    \newline
+    \item 3. Increasing the size of the training data would decrease the bias and have no effect on the variance. It would decrease the bias becuase we are minimizing loss, and, analogously, minimizing the loss at a specific point is going to be the MLE, which, since we often assume $\epsilon \sim \mathcal N(0, \sigma^2)$, implies the sample mean will be the MLE. This sample mean by LLN converges to the true value, so the bias will decrease. There will be no effect on variance because variance is more of a function of model complexity than input data. 
+    \newline
+    \newline
+    4.
+    \newline
+    \qquad a) When $x = 0.1$, based on the model trained on basis 3, I got a predicted result of $0.51992796$. This implies high uncertainty because a value of $0$ means we are certain the planet can be observed and $1$ means we are certain that it cannot be observed; our value is nearly 50/50, so we are quite uncertain. The variance over our ten training sets is $0.003429945554968907$. This measure captures uncertainty from bias in the training set; however, it is relatively much lower than our uncertainty for the actual observability, implying that we are quite certain about the representativeness of our data, but much more unsure as to whether that data indicate that the planet is actually observable. 
+    \newline
+    \newline
+    \qquad b) Repeating the process, for $\phi_3(3.1)$, I got a prediction of $\approx 0.999$ from the first model, so the first model is almost certain that the planet will be observable. However, over all ten models, I got a variance of $\approx 0.25$, which is very high. Indeed, looking at predictions, I get very small and very large values, and the mean prediction across models is $\approx 0.5$. Therefore, in a practical sense, I wouldn't be more confident in either time, but since the mean value of our predictions at $t = 0.1$ is $\approx 0.48$, but at $t = 3.2$, it was $\approx 0.5$, I will go with the latter. The high variance tells/obscures very litle in this scenario because it is variance around uncertainty in the probability. 
+\end{ans}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem 2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -202,6 +232,116 @@ In addition, let $y_{nk}$ denote the $k$-th component of the output vector $\bol
 \end{enumerate}
 \end{framed}
 
+\newpage
+\begin{ans}
+    \item We can split this differentiation into two cases:
+    \begin{enumerate}
+        \item Case 1: $k = j$: For this case, we apply the quotient rule: 
+        $$
+        \frac{\partial }{\partial z_k} \frac{\exp(z_k)}{\sum_{i = 1}^K \exp(z_i)} = \frac{\exp(z_k)\sum_{i = 1}^K \exp(z_i) - \exp(2z_k)}{\left(\sum_{i = 1}^K \exp(z_i)\right)^2}
+        $$
+        Now, we can split the fraction into two fractions:
+        $$
+        \frac{\exp(z_k)\sum_{i = 1}^K \exp(z_i)}{\left(\sum_{i = 1}^K \exp(z_i)\right)^2} - \frac{\exp(2z_k)}{\left(\sum_{i = 1}^K \exp(z_i)\right)^2} = \frac{e^{z_k}}{\sum_{i = 1}^K \exp(z_i)} - \frac{e^{2z_k}}{\left(\sum_{i = 1}^K \exp(z_i)\right)^2}
+        $$
+        By pattern-matching, this is equal to 
+        $$
+        s_{k}(\mathbf z) - (s_{k}(\mathbf z))^2
+        $$
+        \item Case 2: $k \neq j$: we similarly apply the quotient rule
+        $$
+        \frac{\partial }{\partial z_j} \frac{\exp(z_k)}{\sum_{i = 1}^K \exp(z_i)} = \frac{0 \cdot \sum_{i = 1}^K \exp(z_i) - \exp(z_k)\exp(z_j)}{\left(\sum_{i = 1}^K \exp(z_i)\right)^2}
+        $$
+        Now we can split this expression up and get
+        $$
+        -\frac{\exp(z_k)}{\sum_{i = 1}^K \exp(z_i)}\frac{\exp(z_j)}{\sum_{i = 1}^K \exp(z_i)} = 0 - s_k(\mathbf z) -s_j(\mathbf z)
+        $$
+    \end{enumerate}
+    We can simplify these two cases to the equation provided, since if 
+    $k = j$, then
+    $$
+    s_{k}(\mathbf z) - (s_{k}(\mathbf z))^2 = \frac{\partial s_k(\boldz)}{\partial z_j} = s_k(\boldz)(\delta_{jk} - s_j(\boldz))
+    $$
+    (where $\delta_{jk} = 1$), and if $k \neq j$, then 
+    $$
+    0 - s_k(\mathbf z) -s_j(\mathbf z) = \frac{\partial s_k(\boldz)}{\partial z_j} = s_k(\boldz)(\delta_{jk} - s_j(\boldz))
+    $$
+    \newline
+    \newline
+    We can find logarithmic derivative in general as follows, from the chain rule:
+    $$
+    \frac{d}{dx}\ln f(x) = \frac{1}{f(x)}\frac{df(x)}{dx} = \frac{f'(x)}{f(x)}
+    $$
+    Thus, we can plug in:
+    $$
+    = \frac{s_k(\boldz)(\delta_{jk} - s_j(\boldz))}{s_k(\boldz)} = \delta_{jk} - s_j(\boldz)
+    $$
+    \item Since we want 
+    $$
+    P(\left\{\mathbf x_i, \mathbf y_i\right\}_{j = 1}^n) = \prod_{j = 1}^n\left(\prod_{k = 1}^K s_k(\mathbf{Wx_n})\right)^{\mathbf y_{jk}}
+    $$
+    By the Multiplication Rule. Now we take the log. To do this, we must first find the log of the sigmoid. In general, we can apply rules of logs:
+    $$
+    -\ln s_k(\mathbf z) = \ln(e^{\mathbf z_k}) - \ln(\sum_{j = 1}^K e^{\mathbf z_j}) =  \sum_{j = 1}^K \mathbf z_j - \mathbf z_k
+    $$
+    Now, applying our negative log from above, we get
+    $$
+    \sum_{j = 1}^n\mathbf \left(\mathbf \sum_{k = 1}^K  y_{jk} \ln(s_k(\mathbf{Wx}_j))\right)
+    % = \sum_{j = 1}^n\mathbf y_{jk}\left[ \sum_{k = 1}^K \left(\sum_{j = 1}^K \mathbf z_j - \mathbf z_k\right)\right]
+    $$
+    \item We know that the derivative of a sum is the sum of derivatives. Therefore, we can drop all but one term from our result from part 2 and get:
+    $$
+    \frac{\partial}{\partial \matbf z_{ij}}\mathbf \sum_{k = 1}^K y_{jk}\ln(s_k(\mathbf{Wx}_j))
+    $$
+    Now, we can apply this rule again. Since we are deriving w.r.t. $z_{ij}$, $\mathbf y_{jk}$ is a constant. Thus, we only need to differentiate $\ln(s_k(\mathbf{Wx}_j))$, which we did in part 1. We can plug in for that and get 
+    $$
+    \frac{\partial}{\partial \matbf z_{ij}}\mathbf \sum_{k = 1}^K y_{jk}\ln(s_k(\mathbf{Wx}_j)) = \frac{\partial}{\partial \matbf z_{ij}}\mathbf \sum_{k = 1}^K y_{jk}(s_{j}(\mathbf z_i) - \delta_{kj})
+    $$
+    Finally, notice that we have coefficient $y_{jk}$. This reflects element in a matrix of one-hot row vectors; thus, it will be zero or one. Further, it will only be one for one class, so we can set $y_{jk}$ to one for one class, distribute, and evaluate the sum; all terms where $y_{jk} = 0$ will get dropped. From here, we analyze the cases where $k = j$ and $k \neq j$:
+    \begin{enumerate}
+        % \item $k = j$: then our Kronecker delta function will evaluate to 1. We only care about cases where $y_{ij}$ equals one as well. When $k = j$, There will be one such case. Therefore, we have 
+        % $$
+        % s_j(\boldz_i) - y_{ij}.
+        % $$
+        % \item $k \neq j$: then our Kronecker delta function will evaluate to 0. Furhrur function will only be nonzero when $y_{ij} = 1$ and $k = j$ because, if the first condition is false, then we drop the term, and if the second term is false, 
+        % then the term becomes a constant, and we can drop it.  
+        \item $k = j$ Let's write the sum where $k = j$: we have 
+        $$
+        \sum_{k \in \{[1, K] : k = j\}}^K y_{ik}(s_j(\boldz_i) - 1) = s_j(\boldz_i) - y_{ij}.
+        $$
+        There will only be one $k$ where $y_{ik}$ = 1, so there will only be one non-zero term, so we can drop the sum as above
+        \item $k \neq j$: then we can plug in as follows:
+        $$
+        \sum_{k \in \{[1, K] : k \neq j\}}^K y_{ik}(s_j(\boldz_i) - 1) = 0
+        $$
+        By the definition of one-hot encoding, we only get 1 in one case. That case is accounted for above. In this case, $j = k$ because all the remaining terms must have been of index $j$, by the definition of a gradient; otherwise, they would have been dropped as constants. 
+    \end{enumerate}
+    Therefore, our final sum is equivalent to $s_j(\boldz_i) - y_{ij}.$
+    \item As mentioned above, we know that when $k \neq j$, the second derivative becomes zero because we are differentiating with respect to element $j$, but class $k$ is the only one that doesn't evaluate to zero, and the derivative of a constant is zero. Using the definition of $\mathbf z$ above, we can plug in: 
+    $$
+    s_j(\boldz_i) - y_{ij} = s_j(\boldz_i) - y_{ij}
+    $$
+    $$
+    \frac{\partial \ell}{\partial \boldw_j} = \sum_{n = 1}^N\sum_{k = 1}^K\frac{\partial \ell}{\partial z_{nk}}\frac{\partial z_{nk}}{\partial \boldw_j} = \sum_{n = 1}^N\left(\sum_{k = 1}^K s_j(\boldz_i) - y_{ij}\right) \left(\frac{\partial z_{nk}}{\partial \boldw_j}\right)
+    $$
+    We can simplify the first piece as we proved in part 3) and plug in for the definition of $\mathbf z$
+    $$
+    s_j(\boldz_i) - y_{ij} = s_j(\mathbf w_j \mathbf x_i) - y_{ij}
+    $$
+    For the second piece, we want to find 
+    $$
+    \frac{\partial z_{nk}}{\partial \mathbf w_j} = 
+    $$
+    Plugging in as we found above, we get that this resolves to 
+    $$
+    \frac{\partial \mathbf w_j \mathbf x_i}{\partial \mathbf w_j} = \mathbf x_i
+    $$
+    Thus, switching the index variable to correspond to our counter in the sum and plugging in both pieces in their newly-simplified form, we get 
+    $$
+    \sum_{n = 1}^N(s_j(\boldW\boldx_n) - y_{nj})\boldx_n
+    $$
+    which is what we sought to find. 
+\end{ans}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem 3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -248,6 +388,26 @@ After implementing the above classifiers, complete the following exercises:
 \end{enumerate}
 \end{problem}
 
+\newpage
+\begin{ans}
+    \item Here are the decision boundaries for each plot:
+    \newline
+    \includegraphics[scale=0.5]{hw2/knn1.png}
+    \includegraphics[scale=0.5]{hw2/knn5.png}
+    \newline
+    \includegraphics[scale=0.5]{hw2/phi.png}
+    \includegraphics[scale=0.5]{hw2/softmax_regression_result.png}
+    \item These graphs make sense because, looking at each graph, 
+    \begin{enumerate}
+        \item the KNNs form around the closest colors, which is how they work, by definition. KNN-1 has the most intuitive boundaries because it is only looking at the closest point, so it will be the most fit (perhaps overfit) to the data
+        \item The Basis model makes sense because the decision boundaries have curves more similar to a log or quadratic function. The regressor was linear, so it could not remove these curves; thus, they carry over to the final graph. 
+        \item The Softmax model has linear boundaries, which makes sense because it is simply applying constants to both factors; i.e., it will output linear decision boundaries. 
+    \end{enumerate}
+    \item The model that doesn't classify this as a dwarf is the basis model, which classifies it as a giant. The softmax model classifies it as such with probability of approximately 1; 
+    the basis model classifies it with probability of approximately $99\%$
+    Finally, probabilities aren't applicable for our implementation of KNN, since it uses the number of "votes" for each, and picks the majority winner.
+    The softmax regressors make their classification decisions by creating a function of the inputs that outputs a real number with how much it gets activated from the features toward being in a certain category, and converting these activations to probabilities with softmax. The KNN models use the $k$-nearest stars--i.e., predict based on stars with similar inputs whose outputs it already knows. Therefore, for the softmax model, the decision boundaries will be extrapolated far outside their useful range; indeed, it's not too likely that these decision boundaries will always be linear, even though that is how they are modelled. For the KNN, too, it will compare to the most similar stars; if these stars are far away from the input, they really aren't that similar, but the model will classify as such, and so will do so with a smaller probability of being right. 
+\end{ans}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem 4
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -307,19 +467,59 @@ Since testing on a larger patient population is expensive for various reasons, t
 \end{framed}
 
 \newpage
-
+\begin{ans}
+    \item We can solve this by plugging in for the indicator "drug administered" as true and false. However, I will first calculate the rest of the equation to save on repeated computations, saving it as constant $R$ (for rest of the equation)
+    $$
+    R = 0.2 - 0.012 *50 + 0.45*0 +  0.001*168 - 0.007*140 = -1.212
+    $$
+    \begin{enumerate}
+        \item Suppose the drug is administered. Then we have
+        $$
+        p(y=1 | \mathbf{x}) = \sigma(R + 0.8 *\text{\textit{drug administered?}}) = \sigma(-0.412)
+        $$
+        \item Otherwise, we have 
+        $$
+        p(y=1 | \mathbf{x}) = \sigma(R + 0.8 *\text{\textit{drug administered?}}) = \sigma(R) = \sigma(-1.212)
+        $$
+    \end{enumerate}
+    For our sigmoids, the dependent variable is whether we administer the drug, so we plug into the sum for those two activations as follows:
+    $$
+    p(y = 1 | \mathbf x, \text{administered drug}) = \frac{e^{-0.412}}{e^{-0.412} + 1} \approx 39.843%
+    $$
+    $$
+    p(y = 1 | \mathbf x, \text{did not administer drug}) = \frac{e^{-1.212}}{e^{-0.412} + e^{-1.212}} \approx 22.934\dots %
+    $$
+    Informally, I do see a very small amount of evidence for the effectiveness of this drug--40\% is a lot more than 23\%! However, I certainly wouldn't be comfortable releasing the drug to market on this evidence--100 people is a very small sample size, we don't know what the variance in the model is (so I can't perform a t-test or anything like that), and we don't know what the model looks like. As always, in data science, it is crucial to visualize the data. We could have a lack of data in some crucial aspect of this person (for example, some diseases are generally ethnicity-specific, and this model might not account for that). Overall, I would say the results look promising, but we need more data on the trial and possibly more trials. 
+    \item 
+    \begin{enumerate}
+        \item This looks to be a case where the model has more data/more bases, so it can fit the data better. However, it's unclear whether this fit is fitting to the underlying pattern in the data or to noise in the data. 
+        \item This looks to be the curse of dimensionality at play: there are too many terms, so the volume of feature space increases exponentially. This harms the model calculating its gradient. Indeed, consider that this leaves us with 31 dimensions = $\sum_{j = 1}^5 5 \choose j$ for an original dataset of $n = 100$. To fix this, we can decrease the number of dimensions and add in a regularization term. We simply don't have enough data to effectively fit this data in 31-dimensional space. Regularization terms help keep the data from overfitting. We can also reduce dimensionality and keep only the most important aspects of these features using, for example, PCA or t-SNE. 
+        \item I would recommend Model B, because, as discussed above, model C poorly fit, fitting to the noise because the high dimensionality prevents it from "discerning" patterns in the data. 
+    \end{enumerate}
+    \item
+    \begin{enumerate}
+        \item I would allow this patient to access this drug, based on the information I have about it. This depends on what the risks are of this drug and how much more effective it so far has proved to be than the conventional treatments. Overall, however, we should assume that this patient has considered all options and leans toward this new drug. So far, we have promising evidence, and based on the problem formulation, the expected value for them seems to be positive, so it seems like a reasonable decision. In addition, assuming this predictive interval is modeling the distribution as some symmetric, bell-curve-shaped distribution and assuming this model captures the effectiveness of the drug reasonably well, the probability that this drug will prevent the patient from getting better is quite small, since the normal is centered around 5, and the probability that such a normal with $\sigma \approx 3$ takes on a negative value (which will create a worse prediction) is quite low. 
+        \item The best thing the drug company can do is increase its sample size - this will decrease the sample's standard deviation. It could also reduce down to the most important factors to mitigate high dimensionality, while adding in other relevant demographic factors. 
+        \item In the scenario that $w_1 = 1$: we need far fewer samples for the standard error's interval to exclude negativer values (which, assuming ground truth, means the drug is effective) in the case that $w_1 = 5$ than we do in the case that $w_1 = 1$
+        \item This would be a good idea because it could help avoid confounding other factors with the drug's effectiveness, and thus help us create a more accurately-fit model with a tighter interval. 
+    \end{enumerate}
+    \item I would trust the second model more; in the first model, we likely have an element of self-selection. Perhaps, for example, people trying the new drug are affected with a strain of the disease that causes worse symptoms, but toward which the drug is more effective. 
+    
+\end{ans}
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Name and Calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection*{Name}
+\subsection*{Name} John Boesen
 
 \subsection*{Collaborators and Resources}
-Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?
+Whom did you work with, and did you use any resources beyond cs181-textbook and your notes
+\newline
+ - Collaborators: Minh Le
 
 \subsection*{Calibration}
 Approximately how long did this homework take you to complete (in hours)?
 
-
+12.5
 
 \end{document}
