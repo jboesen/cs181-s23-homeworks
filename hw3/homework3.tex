@@ -14,6 +14,13 @@
 \usepackage{color}
 \usepackage{listings}
 \usepackage{enumitem}
+\newenvironment{ans}{
+  \begin{enumerate}
+  \color{blue}
+}{
+  \end{enumerate}
+  \color{black}
+}
 
 \DeclareMathOperator*{\mean}{\mathbb{E}}
 
@@ -132,7 +139,6 @@ Please submit your \textbf{\LaTeX\ file and code files to the Gradescope assignm
 \end{problem}
 
 \newpage
-
 \begin{framed}
 \begin{enumerate}
   \item[3.]
@@ -208,6 +214,161 @@ Please submit your \textbf{\LaTeX\ file and code files to the Gradescope assignm
 \subsection*{Solution:}
 
 \newpage
+\begin{ans}
+    \item We first find the likelihood function. We can drop the binomial coefficient since it is a constant, and we get 
+    $$
+    L(\theta;  Y) = \theta^{y}(1 - \theta)^{N -y}
+    $$
+    The log of this is 
+    $$
+    \ell (\theta;  Y) = y \log \theta + N \log (1 - \theta) - y\log (1 - \theta)
+    $$
+    Taking the derivative w.r.t. $y$, we get
+    $$
+    s (\theta;  Y) = y/\theta - N / (1 - \theta) + y/ (1 - \theta) = 0 \implies \hat \theta _{MLE} = y/N
+    $$
+    \item  
+        \begin{enumerate} 
+        \item
+        \begin{enumerate}
+            \item To find the mean, we can use the Bank-Post Office result, as outlined on page 397 of the Stat 110 Book. First, consider some Beta variable $W$ such that $W = \frac{X}{X + Y}$, where $X \sim \text{Gamma}(a, \lambda)$ and $Y \sim \text{Gamma}(b, \lambda)$. Then, by definition, 
+            $$
+            \mean[W] = \mean [\frac{X}{X + Y}]
+            $$
+            By the Bank-Post Office Result, we first define another variable: $T = X + Y$. We can use this result to say that $\mean[TW] = \mean[T]\mean[W]$. Therefore, plugging in, we have 
+            $$
+            \mean \left[(X + Y) \frac{X}{X + Y}\right] = \mean [(X + Y)]\mean \left[\frac{X}{X + Y}\right]
+            $$
+            Simplifying, and applying the Bank-Post Office result again toward the independence of $X + Y$ and $X$, we have
+            $$
+            \mean \left[\frac{X}{X + Y}\right] = \frac{\mean [X]}{\mean[X + Y]}
+            $$
+            Now, plugging in for the expectation of Gamma variables and simplifying, we have
+            $$
+            \mean [W] = \frac{a}{a + b}
+            $$
+            
+            
+            \item I drop $n \choose k$ here since it's a constant. $q = 1 - p$
+            $$
+            P(Y = k) =& {n \choose k}\int_{p = 0}^1 P(X = k | p)f(p) dp 
+            $$
+            $$
+            &=  \int_{p = 0}^1 p^{\alpha + k - 1} q^{\beta + n - k - 1} dp
+            $$
+            In this step, I combine the terms in the PDFs of beta and binomial and also then drop constants: $\frac{1}{\beta (\alpha, \beta)}$ and $n \choose k$. Therefore, if this is our PDF, we can pattern-match to the beta function and get this for our posterior likelihood:
+            $$
+            L(p ; Y = k) = \text{Beta}(\alpha + k, \beta + n - k)
+            $$
+            To maximize this, we note that we maximize $p(\theta)$ by taking the log's derivative, setting it to zero, and verifying that $p$ is globally concave. (We can maximize the log and get the same point because it is monotonic increasing.)
+        $$
+        \log p(\theta) = (\alpha - 1) \log\theta + (\beta - 1)\log(1 - \theta) \implies \frac{(\alpha - 1)}{\theta} + \frac{1 - \beta}{1 - \theta} = 0
+        $$
+        Doing this, we get the following result
+        $$
+        \frac{1-\alpha}{2 - \beta - \alpha}
+        $$
+        This is globally concave:
+        $$
+        \frac{\partial ^2}{\partial^2 \theta} = \frac{(1 - \alpha)}{\theta^2} + \frac{1 - \beta}{(1 - \theta)^2}
+        $$
+        The above will always be less than or equal to zero because the first term's numerator will be negative since $\alpha > 1$, and its denominator will be nonnegative; and the second term will always be negative for the same reason. 
+        If $\alpha$ or $\beta < 1$, then we can get a divide by zero error (and if they are greater than one, we can't) or, we can get a bimodal distribution, so there might not exist only one mode, or the mean could return a useless answer because it will be in a valley between the two modes, i.e., a region where the estimate is actually quite unlikely, on our priors. 
+        \item To find variance, we first find $\mean [\theta^2]$, which we can do by integrating over the PDF:
+        $$
+        \int_{0}^1 \theta^2 (\theta^{\alpha - 1}(1-\theta)^{\beta - 1}) d\theta = \frac{1}{\alpha + 2} - \frac{1}{\alpha + \beta + 1}
+        $$
+        Therefore, using the definition of variance, we have
+        $$
+        \mean[\theta^2] - \mean[\theta]^2 = \frac{1}{\alpha + 1} - \frac{1}{\alpha + \beta + 1} - \frac{\alpha^2}{(\alpha + \beta)^2}
+        $$
+        If we let $\mu = \frac{\alpha}{\alpha + \beta}$, then we have variance of 
+        $$
+        \frac{\mu(1 - \mu)}{\alpha + \beta + 1}
+        $$
+        \end{enumerate}
+        Beta(1, 1) corresponds to a Uniform distribution from 0 to 1. If we scale $\alpha$ and $\beta$, very informally, we get that lower $\alpha$ makes the distribution have a higher PDF value towards the left and higher $\beta$ makes it have higher PDF values towards the right. Higher values for both correspond to a more hump-shaped/normal-looking distribution, and lower values for both mean the distribution is more U-shaped (i.e., the PDF has higher value near to 0 and 1). Finally, higher values for either correspond to steeper curves. 
+        \item We can verify Beta-Binomial Conjugacy by plugging in for the posterior, which is proportional to likelihood times prior:
+        $$
+        (\theta^y(1 - \theta)^{N - y}) \cdot (\theta^{\alpha - 1}(1 - \theta)^{\beta - 1}) = \theta(y + \alpha - 1)(1 - \theta)^{\beta + N - y - 1}
+        $$
+        Thus, we can pattern-match this to a Beta$(y + \alpha, \beta + N - y)$ distribution.         
+    \end{enumerate}
+    \item
+    \begin{enumerate}
+        \item Posterior point estimates can be useful in that they condense our distribution down to a single number, which is useful in that we can make point predictions from single number, but we cannot make point predictions from distributions; we can make distributions of predictions. However, condensing a distribution down to a point also destroys information and can be misrepresentative (for example, as discussed in class, if we have a bimodal posterior and take the MAP, we will end up discarding a large portion of the data from the posterior because we will neglect one of the modes). We care about the following point estimates: mean and mode. 
+        % !! What do I say about a|| b < 1? 
+        When $\alpha < 1$ or $ \beta < 1$, our mean and mode estimates become much less useful. In this case, when both are less than one, the distribution becomes u-shaped, so the mean will be in between the peaks; i.e., in a very low-probability region; and there will be potentially multiple peaks with the same value, so we cannot return one mode (there will be two), in the case $\alpha = \beta$. Otherwise, we will be able to return a mode, but it will not capture the information fully because we will neglect the other mode. 
+        \item Using the results from above, 
+        \begin{enumerate}
+            \item $\mean \theta_\text{post} = \frac{y + \alpha}{y + \alpha + \beta + N - y}$
+            % \item $\theta_\text{MAP} = \frac{(1 - y - \alpha)}{\theta^2} + \frac{1 - \beta - N + y}{(1 - \theta)^2}$
+            \item $\theta_{\text{MAP}} = \frac{y + \alpha - 1}{n + \alpha + \beta - 2}$
+            \item If we let $\mu$ be the result in i), then $\text{Var}(\theta | Y = y) = \frac{\mu(1 - \mu)}{y + \alpha + \beta + N - y + 1}$
+        \end{enumerate}
+    \end{enumerate}
+    \item 
+    \begin{enumerate}
+        \item The prior distribution will pull the MAP toward the prior mean--i.e., if we have a prior centered on 0.5, then the MAP will be more likely to be near 0.5. Put another way, higher $\alpha$ means we think the probability is more likely to be low, and higher $\beta$ means we think it is more likely to be high. High values for both tightens the distribution. Therefore, if I thought a coin was probably fair, I would set high values for both $\alpha$ and $\beta$. This produces a distribution where the mean is near $0.5$. 
+        \item 
+        \begin{enumerate}
+            \item Assuming constant variance in the data, they are positively correlated. 
+            \item I would decrease the variance in the prior to encode a stronger belief (for example, a distribution with a large hump at $0.5$ if I thought a coin was probably fair). 
+            \item It decreases because the likelihood for different values decreases the least around the true value, so the posterior distribution tightens around the true value. 
+        \end{enumerate}
+    \end{enumerate}
+    % \item From Derivation 2.9.1 in the book, consider likelihood function 
+    \item 
+    \begin{enumerate}
+        \item 
+    We have already derived the MAP estimate, and we know that this estimate comes from the loss function $\ell$ where setting $\ell'(\theta) = 0 \implies \theta = \theta_{\text{MAP}}$. Therefore, we can take our result from above and set it equal to zero:
+    $$
+    \frac{y + \alpha - 1}{n + \alpha + \beta - 2} = \theta_{\text{MAP}} \equiv \frac{y + \alpha - 1}{n + \alpha + \beta - 2} - \theta_{\text{MAP}} = 0
+    $$
+    We know that our loss function is of the form 
+    $$
+    c(y - n\theta)^2 - a\theta + b\theta^2
+    $$
+    So we can take the derivative of this and pattern-match it with our MAP estimate:
+    $$
+    \frac{d}{d\theta} c(y - n\theta)^2 - a\theta + b\theta^2 = -2c(y - n\theta) - a + 2b\theta  = 0
+    $$
+    Now, we solve for $\theta$, and get that
+    $$
+    -2cy + 2cn\theta - a + 2b\theta \implies \theta_{\text{MAP}} = \frac{2cny + a}{2cn^2 + 2b} = \frac{\alpha + y - 1}{\alpha + \beta + n - 2}
+    $$
+    Therefore, solving for these constants, we get 
+    $$
+    a = \alpha - 1, b = \frac{\alpha + \beta}{2} - 1, c = \frac{1}{2n}
+    $$
+    I.e., 
+    $$
+    \frac{1}{2n}(y - n\theta)^2 - (\alpha - 1)\theta + (\frac{\alpha + \beta}{2} - 1)\theta^2
+    $$
+    Interpreting this, we complete the square on the regularization term and get 
+    $$
+    \frac{\alpha + \beta - 2}{2}\left(\theta - \frac{\alpha - 1}{\alpha + \beta - 2}\right)^2
+    $$
+    We can pattern-match $\frac{\alpha - 1}{\alpha + \beta - 2}$ to the mean of our prior, which makes sense: this is saying the results will get pulled toward the mean of our prior. 
+    \item Both go to $\frac{y}{n}$: if we look at our expressions, we have 
+    $$
+    \frac{1-\alpha}{2 - \beta - \alpha} = \theta_{\text{MAP}}
+    $$
+    and 
+    $$
+    \frac{\alpha + y}{\beta + n + \alpha}
+    $$
+    Remember $y$ is distributed such that $\mean [Y] = n \theta$ and $\text{Var}(Y)=\frac{\sigma^2}{n}$. Therefore, as $n \to \infty$, our other constants $\alpha, \beta, 2,$ and $1$ will become less and less significant and we will be left with expressions asymptotically equivalent to 
+    $$
+    \frac{y}{n} = \frac{n\theta}{n} = \theta
+    $$
+    ($\frac{Y}{n} = \bar Y \to \theta$ is also true by LLN.)
+    \end{enumerate}
+    \end{ans}
+\newpage
+
+
+\newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem 2
@@ -259,7 +420,7 @@ Please submit your \textbf{\LaTeX\ file and code files to the Gradescope assignm
 \end{enumerate}
 
 \end{problem}
-
+\newpage
 \newpage 
 
 \begin{framed}
@@ -269,7 +430,6 @@ Please submit your \textbf{\LaTeX\ file and code files to the Gradescope assignm
     
       \item  We now explore an example of forward-mode auto-differentiation. Consider the following 
           equation:
-    
           $$
             f(x_1, x_2) = \ln (\sin (x_1)) + x_1 \exp \{ x_2 \}
           $$
@@ -333,7 +493,75 @@ Please submit your \textbf{\LaTeX\ file and code files to the Gradescope assignm
 
 \subsection*{Solution:}
 
-
+\begin{ans}
+    \item 
+    % How much justification?
+    \begin{enumerate}
+        \item $\mathbf x$ is of shape $M \times 1$ because we have one datapoint, so we have one row. 
+        % \item $\mathbf W_1$ is of shape $H \times 1$ since it takes $\mathbf x$ as its input, and by definition outputs to the first hidden layer. This implies that $\mathbf b_1$ and $\mathbf a_1$, and $\mathbf z_1$ are of shape $H \times 1$
+        \item $\mathbf W_1$ is of shape $H \times M$ since it takes $\mathbf x$ as its input, and by definition outputs to the first hidden layer. This implies that $\mathbf b_1$ and $\mathbf a_1$, and $\mathbf z_1$ are of shape $H \times 1$
+        \item $\mathbf W_2$ is of shape $1 \times H$ because it takes the $H \times 1$ input from the previous step and we want an output of shape $1 \times 1$. 
+        Therefore, $\mathbf b_2$, $a_2$, and $z_2$ are of shape $1 \times 1$
+    \end{enumerate}
+    \item 
+    \begin{enumerate}
+        \item We can find this via the Chain Rule:
+        $$
+        \frac{\partial L}{\partial \mathbf b_2} = \frac{\partial L}{\partial \hat y}\frac{\partial \hat y}{\partial a_2} \frac{\partial a_2}{\partial \mathbf b_2} = \left(\frac{1 - y}{1 - \hat y}-\frac{y}{\hat y}\right) \left((1 - \sigma(a_2)) \sigma(a_2)\right) \cdot 1
+        $$
+        \item We get the following from the Chain Rule:
+        $$
+        \frac{\partial L}{\partial W_2^h} = \frac{\partial L}{\partial \hat y}\frac{\partial \hat y}{\partial \mathbf W_2^h}=\left(\frac{1 - y}{1 - \hat y}-\frac{y}{\hat y}\right) \sigma(a_2)(1 - \sigma(a_2))\mathbf z_1^h
+        $$
+        $ \mathbf z_1^h$ comes from the fact that, recalling part 1, we have a $1 \times H$ matrix, $\mathbf W_2$, times an $H \times 1$ matrix. This is mathematically equivalent to $\sum_{j = 1}^H W_2^j z_1^j$; therefore, we can just take the derivative of the $h$th term of this sum, which is $z_1^j$. 
+        \item Chain Rule gives:
+        $$
+        \frac{\partial L}{\partial b_1^h} = \frac{\partial L}{\partial \hat y} \frac{\partial \hat y}{\partial a_2^h} \frac{\partial a_2^h}{\partial z_1^h}\frac{\partial z_2^h}{\partial a_1^h}\frac{a_1^h}{b_1^h}
+        $$
+        Plugging in, we have
+        $$
+        (\frac{1 - y}{1 - \hat y}-\frac{y}{\hat y}) \cdot \sigma(a_2)(1 - \sigma(a_2))\cdot W_2^{1, h} \cdot\sigma(a_1^h)(1 - \sigma(a_1^h))
+        $$
+        \item By Chain Rule,
+        $$
+         \frac{\partial L}{\partial W_1^{h, m}} = \frac{\partial L}{\partial \hat y} \frac{\partial \hat y}{\partial a_2} \frac{\partial a_2}{\partial z_1^h}\frac{\partial z_1^h}{\partial a_1^h}\frac{a_1^h}{W_1^{h, m}}
+        $$
+        We have
+        $$
+        = (\frac{1 - y}{1 - \hat y}-\frac{y}{\hat y}) \cdot \sigma(a_2)(1 - \sigma(a_2)) \cdot W_2^{1, h}\cdot \sigma(a_1^h)(1-\sigma(a_1^{h})\cdot X_{m, 1}
+        $$
+    \end{enumerate}
+    \item
+    \begin{enumerate}
+    \item The values are as follows:
+    \newline
+     \begin{enumerate}
+        \item $v_1 = \frac{\pi}{6}$
+        \item $v_2 = 1/2$
+        \item $v_3 = -\ln 2$
+        \item $v_4 = 1$
+        \item $v_5 = e$
+        \item $v_6 = \frac{e\pi}{6}$
+        \item $v_7 = -\ln 2 $
+    \end{enumerate}
+    \newpage
+    \item 
+    \begin{tabular}{|c|c|c|}
+        \hline
+        $i$ value & $\frac{\partial v_i}{x_1}$ & $\frac{\partial v_i}{x_2}$ \\
+        \hline
+        1 & 1 & 0 \\
+        2 & $\cos(x_1) = \cos\frac{\pi}{6}$ & 0 \\
+        3 & $\frac{1}{\sin(v_1)}\cos(x_1) = \sqrt 3$ & $0$\\
+        4 & 0 & 1 \\
+        5 & 0 & $e$ \\ 
+        6 & $e^{x_2}$ & $x_1e^{x_2}$ \\ 
+        7 & $\sqrt 3 + e^{x_2}$ & $0 + x_1e^{x_2}$\\
+        \hline
+    
+        \end{tabular}
+    \end{enumerate}
+\end{ans}
 
 \newpage
 
@@ -366,52 +594,82 @@ In this problem, you will learn how to use PyTorch. This machine learning librar
 
 Plot:
 
-% \includegraphics[width=\linewidth]{final_plot}
+\includegraphics[width=\linewidth]{hw3/ML plot.png}
 
 Code:
 
 \begin{lstlisting}[language=Python]
-n_inputs = 'not implemented'
-n_hiddens = 'not implemented'
-n_outputs = 'not implemented'
+J = 256
+# mini-batch size = 4
+M = 4
+# flatten 28 * 28 image into a row vector of length 28 * 28
+D = 28 * 28
+K = 10
 
-W1 = 'not implemented'
-b1 = 'not implemented'
-W2 = 'not implemented'
-b2 = 'not implemented'
+W1 = torch.nn.Parameter(0.01 * torch.randn(size=(D, J))) # matrix applying linear transformation
+b1 = torch.nn.Parameter(0.01 * torch.randn(size=(1, J))) # additive bias term
+W2 = torch.nn.Parameter(0.01 * torch.randn(size=(J, K))) # matrix applying linear transformation
+b2 = torch.nn.Parameter(0.01 * torch.randn(size=(1, K))) # additive bias term
 
+W1.requires_grad = True
+b1.requires_grad = True
+W2.requires_grad = True
+b2.requires_grad = True
+
+params = [W1, b1, W2, b2]
 
 
 def relu(x):
-    'not implemented'
-
-
+  return torch.clamp(x, min=0)
 
 def softmax(x):
-    'not implemented'
-
+  return torch.exp(X) / torch.sum(torch.exp(X), dim=1, keepdim=True)
 
 
 def net(X):
-  'not implemented'
-
+  X = X.view(-1, D)
+  
+  A1 = X @ W1 + b1
+  H = relu(A1)
+  A2 = H @ W2
+  Z2 = A2 + b2
+  y_hat = softmax(Z2)
+  return y_hat
 
 
 def cross_entropy(y_hat, y):
-  'not implemented'
+  y_onehot = torch.zeros(y_hat.shape)
+  y_onehot.scatter_(1, y.view(-1, 1), 1)
+  return -torch.sum(y_onehot * torch.log(y_hat), dim=1)
 
 
 
 def sgd(params, lr=0.1):
-  'not implemented'
-
+  with torch.no_grad():
+    for param in params:
+      param -= lr * param.grad
+      param.grad.zero_()
 
 
 def train(net, params, train_iter, loss_func=cross_entropy, updater=sgd):
-  'not implemented'
-
+  for epoch in range(10):
+    total_loss = 0
+    for X, y in train_iter:
+      y_hat = net(X)
+      total_loss += loss_func(y_hat, y)
+      avg_loss = total_loss / M
+      avg_loss.backward()
+      updater(params)
 \end{lstlisting}
-
+\begin{ans}
+    \item See above
+    \item In the plot 
+    \begin{enumerate}
+        \item As we would expect, train accuracy becomes greater than test accuracy by the end of the test as the model gets fit on train data, even though at the beginning, the test accuracy is actually better!
+        \item Train and test loss/accuracy get better in smaller and smaller steps, which makes sense, as it matches up with how we would expect the surface we're performing gradient descent on to look (i.e., generally with nonzero Hessian). 
+    \end{enumerate}
+    \item I got in-distribution accuracy of 0.9963235294117647 and out-of-distribution accuracy of 0.4339706599712372. This suggests that the model is overfit: obviously, $\approx 99\%$ accuracy is nearly perfect. If our model was well-fit, we would expect out-of-distribution accuracy above, say, $80\%$ ("reasonably good"). $40\%$ is not in the same region of accuracy. 
+\end{ans}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -514,7 +772,29 @@ words in total). Bullet points are appropriate.
 \newpage
 
 \subsection*{Solution:}
-
+\begin{ans}
+    \item 
+    \begin{enumerate}
+        \item One adversarial attack in the hardware is, if the camera/LiDAR/perception systems aren’t sufficiently redundant and the car doesn’t have sufficient alert systems, an adversary could break or disable the sensors and prevent them from working. E.g., he could put duct tape on the cameras. 
+        \item A hack could target the software side of the system. For example, a Man in the Middle attack could intercept database connections and impersonate http responses (I know there have already been several instances of hacking cars' computer systems, so it seems like a reasonable extension to add this capability to the self-driving aspect). 
+        \item A phishing attack could consist of an email pretending to be a software update to be installed on the self-driving capabilities, but actually be one that either steals the drivers information or causes the car to crash. 
+    \end{enumerate}
+    \item \begin{enumerate}
+        \item Mandating some sort of detection system to alert the driver when sensors are broken or compromised would prevent against this. With this safeguard, the car could not activate self-driving capabilities without service, preventing the compromised sensors from leading the system to make poor driving decisions. 
+        \item The best fix for this is to make more secure software systems and communication protocols using, for example, encryption. 
+        \item The manufacturer could make the car's software closed-source, preventing consumers from installing additions onto it. To lower the likelihood of this kind of information phishing, manufacturers could make especially clear to the consumer how they will communicate with them, thus implying that other methods will be phishers
+    \end{enumerate}
+    \item \begin{enumerate}
+        \item \textbf{Policy}: it seems like the avenues with the highest potential for hacking are via internet connections (this is what a report by the European Union Agency for Cybersecurity found), and the other vulnerabilities I listed above are likely enough and low-cost enough that we can expect the free market to adequately embed incentives for interventions addressing these vulnerabilities. I am no cybersecurity expert, but I would mandate some sort of internet connection "containerization" - i.e., the self-driving systems have to somehow insulate their self-driving decision-making apparati from from real-time data received over an internet connection. 
+        \begin{enumerate}
+            \item One specific requirement toward this end is to mandate virtualization technology to create isolated environments for the self-driving decision-making apparatus. In this approach, the self-driving decision-making software would run in a virtual machine (VM) that is isolated from the rest of the system and the Internet
+            \item Another potential approach would be to mandate any connections to external sources are encrypted, ensuring the data is authentic. I lean toward this requirement because it seems reasonably low-cost and high-benefit to implement, and is something that you build on top of the software, rather than something you have to build the software around. 
+        \end{enumerate}
+        \item \textbf{Benefit}: We have seen relatively few phishing attacks of this kind, but, in the likely event they become more common, this would be a high-benefit intervention: it could save the lives of drivers whose cars would have otherwise been easily hacked. 
+        \item \textbf{Cost}: Generally, we should be hesitant about regulating continuously-evolving technology: government can have a poor track record at this: often, they mandate that a solution must match overly-restricting criteria, and, in doing so, preclude some better solution that was unknown when the policy was implemented. Given the evolving nature of self-driving technology, I suspect this might be one of these cases. 
+    \end{enumerate}
+\end{ans}
+\
 
 \newpage
 
@@ -525,6 +805,8 @@ words in total). Bullet points are appropriate.
 
 \subsection*{Collaborators and Resources}
 Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?
+
+\href{https://www.lifewire.com/how-self-driving-cars-can-be-hacked-5114337}{EU Cybersecurity Study}
 
 \subsection*{Calibration}
 Approximately how long did this homework take you to complete (in hours)? 
